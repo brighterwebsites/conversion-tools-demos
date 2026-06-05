@@ -3,7 +3,7 @@
  * Plugin Name: BNB Property Tools
  * Plugin URI:  https://brighterwebsites.com.au
  * Description: A showcase of calculators for web agency and short-term rental clients — embedded via shortcodes. Assets load only on pages that use a shortcode.
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      Brighter Websites
  * Author URI:  https://brighterwebsites.com.au
  * License:     GPL-2.0+
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BNB_TOOLS_VERSION', '1.1.0' );
+define( 'BNB_TOOLS_VERSION', '1.2.0' );
 define( 'BNB_TOOLS_URL', plugin_dir_url( __FILE__ ) );
 define( 'BNB_TOOLS_PATH', plugin_dir_path( __FILE__ ) );
 
@@ -22,7 +22,7 @@ define( 'BNB_TOOLS_PATH', plugin_dir_path( __FILE__ ) );
  * All registered shortcode tags — used for conditional asset loading.
  */
 function bnb_tools_shortcodes() {
-	return [ 'bnb_annual_revenue', 'bnb_net_revenue', 'bnb_lead_gap' ];
+	return [ 'bnb_annual_revenue', 'bnb_net_revenue', 'bnb_lead_gap', 'bnb_sales_closer' ];
 }
 
 /**
@@ -367,6 +367,88 @@ function bnb_lead_gap_shortcode() {
 	<div class="bnb-tool__cta">
 		<p>Know your gap. Now let's close it. <strong>We build the systems</strong> that turn more leads into paying clients.</p>
 		<a class="bnb-tool__cta-btn" href="/contact">Let's Talk Strategy &rarr;</a>
+	</div>
+	</div>
+	<?php
+	return ob_get_clean();
+}
+
+// ---------------------------------------------------------------------------
+// Shortcode 4: Sales Closer — Sales Goals Calculator
+// Usage: [bnb_sales_closer]
+//
+// Inputs:  income goal (with daily/weekly/monthly period toggle), average client
+//          value, work days per week, clients per day
+// Outputs: goal breakdown across all three periods, clients needed, surplus/gap
+// ---------------------------------------------------------------------------
+add_shortcode( 'bnb_sales_closer', 'bnb_sales_closer_shortcode' );
+function bnb_sales_closer_shortcode() {
+	ob_start();
+	echo bnb_tools_wrap( 'bnb-sales-closer' );
+	?>
+	<div class="bnb-tool__header">
+		<span class="bnb-tool__badge">Free Calculator</span>
+		<h2 class="bnb-tool__title">Sales Closer &mdash; Sales Goals Calculator</h2>
+		<p class="bnb-tool__subtitle">Set a daily, weekly, or monthly income target and find out exactly how many clients you need to hit it.</p>
+	</div>
+
+	<div class="bnb-tool__body">
+
+		<div class="bnb-tool__field sc-goal-field">
+			<label>I want to set a goal based on my</label>
+			<div class="sc-period-toggle" role="group" aria-label="Goal period">
+				<button type="button" class="sc-period-btn" data-period="daily">Daily</button>
+				<button type="button" class="sc-period-btn sc-period-btn--active" data-period="weekly">Weekly</button>
+				<button type="button" class="sc-period-btn" data-period="monthly">Monthly</button>
+			</div>
+		</div>
+
+		<div class="bnb-tool__inputs bnb-tool__inputs--grid">
+
+			<div class="bnb-tool__field">
+				<label for="sc-income-goal" id="sc-income-goal-label">Weekly Income Goal</label>
+				<div class="bnb-tool__input-wrap">
+					<span class="bnb-tool__unit bnb-tool__unit--prefix">$</span>
+					<input type="number" id="sc-income-goal" min="1" placeholder="e.g. 3000" />
+				</div>
+			</div>
+
+			<div class="bnb-tool__field">
+				<label for="sc-client-value">Average Client Value</label>
+				<div class="bnb-tool__input-wrap">
+					<span class="bnb-tool__unit bnb-tool__unit--prefix">$</span>
+					<input type="number" id="sc-client-value" min="1" placeholder="e.g. 150" />
+				</div>
+			</div>
+
+			<div class="bnb-tool__field">
+				<label for="sc-work-days">Days You Work per Week</label>
+				<div class="bnb-tool__input-wrap">
+					<input type="number" id="sc-work-days" min="1" max="7" placeholder="e.g. 5" />
+					<span class="bnb-tool__unit">days</span>
+				</div>
+			</div>
+
+			<div class="bnb-tool__field">
+				<label for="sc-clients-daily">Clients You Can See per Day</label>
+				<div class="bnb-tool__input-wrap">
+					<input type="number" id="sc-clients-daily" min="1" placeholder="e.g. 6" />
+					<span class="bnb-tool__unit">/ day</span>
+				</div>
+			</div>
+
+		</div>
+
+		<button class="bnb-tool__btn" onclick="bnbCalcSalesCloser()">Calculate My Goals</button>
+
+		<div class="sc-results" id="sc-results" style="display:none;"></div>
+
+		<p class="bnb-tool__disclaimer">* Some figures have been rounded during calculations.</p>
+	</div>
+
+	<div class="bnb-tool__cta">
+		<p>Ready to close more sales? <strong>Let's talk strategy</strong> and build a plan to hit your income goals.</p>
+		<a class="bnb-tool__cta-btn" href="/contact">Book a Free Strategy Call &rarr;</a>
 	</div>
 	</div>
 	<?php

@@ -5,6 +5,7 @@
  *   bnbCalcAnnualRevenue()  — button-triggered, Annual Revenue Estimator
  *   bnbCalcNetRevenue()     — button-triggered, Per-Booking Net Revenue Estimator
  *   Lead Gap Calculator     — live/real-time, initialised via bnbInitLeadGap()
+ *   bnbCalcSalesCloser()    — button-triggered, Sales Closer Goals Calculator
  *
  * No external dependencies. Safe to load in footer (true in wp_enqueue_script).
  * Assets are only enqueued on pages that contain a plugin shortcode.
@@ -47,6 +48,10 @@
   function set(id, text) {
     var el = document.getElementById(id);
     if (el) el.textContent = text;
+  }
+
+  function roundUp10(n) {
+    return Math.ceil(n / 10) * 10;
   }
 
   /* ── Annual Revenue ──────────────────────────────────────── */
@@ -211,12 +216,156 @@
     }
   }
 
+  /* ── Sales Closer — Sales Goals Calculator ───────────────── */
+
+  function bnbInitSalesCloser() {
+    var root = document.getElementById('bnb-sales-closer');
+    if (!root) return;
+
+    /* period toggle */
+    root.querySelectorAll('.sc-period-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        root.querySelectorAll('.sc-period-btn').forEach(function (b) {
+          b.classList.remove('sc-period-btn--active');
+        });
+        btn.classList.add('sc-period-btn--active');
+        var period = btn.getAttribute('data-period');
+        var labels = { daily: 'Daily Income Goal', weekly: 'Weekly Income Goal', monthly: 'Monthly Income Goal' };
+        root.querySelector('#sc-income-goal-label').textContent = labels[period];
+        /* clear results when period changes */
+        var res = root.querySelector('#sc-results');
+        if (res) res.style.display = 'none';
+      });
+    });
+  }
+
+  window.bnbCalcSalesCloser = function () {
+    var root = document.getElementById('bnb-sales-closer');
+    if (!root) return;
+
+    var activeBtn  = root.querySelector('.sc-period-btn--active');
+    var period     = activeBtn ? activeBtn.getAttribute('data-period') : 'weekly';
+
+    var incomeGoal    = numVal('sc-income-goal');
+    var clientValue   = numVal('sc-client-value');
+    var workDays      = numVal('sc-work-days');
+    var clientsDaily  = numVal('sc-clients-daily');
+
+    if (incomeGoal === null || clientValue === null || workDays === null || clientsDaily === null) {
+      alert('Please fill in all four fields before calculating.');
+      return;
+    }
+    if (workDays < 1 || workDays > 7) {
+      alert('Work days must be between 1 and 7.');
+      return;
+    }
+
+    /* Normalise the entered goal to a weekly figure, then derive all periods */
+    var goalWeekly;
+    if (period === 'daily') {
+      goalWeekly = incomeGoal * workDays;
+    } else if (period === 'monthly') {
+      goalWeekly = incomeGoal * 12 / 52;
+    } else {
+      goalWeekly = incomeGoal;
+    }
+
+    var goalDaily   = roundUp10(goalWeekly / workDays);
+    goalWeekly      = roundUp10(goalWeekly);
+    var goalMonthly = roundUp10(goalWeekly * 52 / 12);
+
+    /* Clients needed to hit the goal each period */
+    var neededDaily   = Math.ceil(goalDaily / clientValue);
+    var neededWeekly  = Math.ceil(neededDaily * workDays);
+    var neededMonthly = Math.ceil(neededWeekly * 52 / 12);
+
+    /* Actual income capacity based on clients they can see */
+    var capacityDaily   = roundUp10(clientsDaily * clientValue);
+    var capacityWeekly  = roundUp10(capacityDaily * workDays);
+    var capacityMonthly = roundUp10(capacityWeekly * 52 / 12);
+
+    var weeklyDiff    = capacityWeekly - goalWeekly;
+    var weeklyDiffPct = Math.abs(((weeklyDiff / goalWeekly) * 100)).toFixed(0);
+
+    var message;
+    if (weeklyDiff < 0) {
+      message = '<p class="sc-note sc-note--negative">' +
+        'Based on these numbers there is a weekly shortfall of ' + fmtRound(Math.abs(weeklyDiff)) +
+        ' (' + weeklyDiffPct + '% below target). Consider seeing more clients each day, working more days, or increasing your rates.' +
+        '</p>';
+    } else {
+      message = '<p class="sc-note sc-note--positive">' +
+        'You will hit your target with a weekly surplus of ' + fmtRound(weeklyDiff) +
+        ' (' + weeklyDiffPct + '% above target).' +
+        '</p>';
+    }
+
+    var dayNote = '';
+    if (workDays > 7) {
+      dayNote = '<p class="sc-note sc-note--negative">Working more than 7 days a week is not possible — please adjust your work days.</p>';
+    } else if (workDays >= 6) {
+      dayNote = '<p class="sc-note sc-note--caution">Working ' + workDays + ' days a week is demanding. Be mindful of burnout.</p>';
+    }
+
+    var html =
+      '<h4 class="sc-results__heading">Your Income Goals</h4>' +
+      '<div class="sc-table">' +
+        '<div class="sc-table__row sc-table__row--header">' +
+          '<div class="sc-table__cell">Daily</div>' +
+          '<div class="sc-table__cell">Weekly</div>' +
+          '<div class="sc-table__cell">Monthly</div>' +
+        '</div>' +
+        '<div class="sc-table__row">' +
+          '<div class="sc-table__cell">' + fmtRound(goalDaily) + '</div>' +
+          '<div class="sc-table__cell">' + fmtRound(goalWeekly) + '</div>' +
+          '<div class="sc-table__cell">' + fmtRound(goalMonthly) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<h4 class="sc-results__heading">Clients Needed at ' + fmtRound(clientValue) + ' Each</h4>' +
+      '<p class="sc-results__sub">Working ' + workDays + ' day' + (workDays !== 1 ? 's' : '') + ' per week</p>' +
+      '<div class="sc-table">' +
+        '<div class="sc-table__row sc-table__row--header">' +
+          '<div class="sc-table__cell">Daily</div>' +
+          '<div class="sc-table__cell">Weekly</div>' +
+          '<div class="sc-table__cell">Monthly</div>' +
+        '</div>' +
+        '<div class="sc-table__row">' +
+          '<div class="sc-table__cell">' + neededDaily + '</div>' +
+          '<div class="sc-table__cell">' + neededWeekly + '</div>' +
+          '<div class="sc-table__cell">' + neededMonthly + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<h4 class="sc-results__heading">Your Earning Capacity</h4>' +
+      '<p class="sc-results__sub">Based on ' + clientsDaily + ' clients/day at ' + fmtRound(clientValue) + ' each</p>' +
+      '<div class="sc-table">' +
+        '<div class="sc-table__row sc-table__row--header">' +
+          '<div class="sc-table__cell">Daily</div>' +
+          '<div class="sc-table__cell">Weekly</div>' +
+          '<div class="sc-table__cell">Monthly</div>' +
+        '</div>' +
+        '<div class="sc-table__row">' +
+          '<div class="sc-table__cell">' + fmtRound(capacityDaily) + '</div>' +
+          '<div class="sc-table__cell">' + fmtRound(capacityWeekly) + '</div>' +
+          '<div class="sc-table__cell">' + fmtRound(capacityMonthly) + '</div>' +
+        '</div>' +
+      '</div>' +
+      message + dayNote;
+
+    var resultsEl = document.getElementById('sc-results');
+    resultsEl.innerHTML = html;
+    resultsEl.style.display = '';
+  };
+
   /* ── Boot ────────────────────────────────────────────────── */
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bnbInitLeadGap);
+    document.addEventListener('DOMContentLoaded', function () {
+      bnbInitLeadGap();
+      bnbInitSalesCloser();
+    });
   } else {
     bnbInitLeadGap();
+    bnbInitSalesCloser();
   }
 
 })();
