@@ -1,4 +1,4 @@
-# BNB Property Tools — WordPress Plugin
+# Custom Conversion Tools — WordPress Plugin
 
 A showcase of short-term rental calculators for WordPress. Embed both tools anywhere with a simple shortcode.
 
