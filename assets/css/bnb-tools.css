@@ -1,0 +1,328 @@
+/* ============================================================
+   BNB Property Tools — Shared Stylesheet
+   ============================================================ */
+
+:root {
+  --bnb-primary:       #1a1a2e;
+  --bnb-accent:        #e94560;
+  --bnb-accent-hover:  #c73652;
+  --bnb-surface:       #ffffff;
+  --bnb-surface-alt:   #f8f9fc;
+  --bnb-border:        #e2e8f0;
+  --bnb-text:          #1e293b;
+  --bnb-text-muted:    #64748b;
+  --bnb-result-bg:     #fff5f7;
+  --bnb-result-border: #fecdd3;
+  --bnb-radius:        14px;
+  --bnb-radius-sm:     8px;
+  --bnb-shadow:        0 4px 24px rgba(0,0,0,.08);
+  --bnb-font:          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ── Container ─────────────────────────────────────────────── */
+.bnb-tool {
+  font-family: var(--bnb-font);
+  color: var(--bnb-text);
+  background: var(--bnb-surface);
+  border: 1px solid var(--bnb-border);
+  border-radius: var(--bnb-radius);
+  box-shadow: var(--bnb-shadow);
+  max-width: 740px;
+  margin: 2rem auto;
+  overflow: hidden;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.bnb-tool__header {
+  background: var(--bnb-primary);
+  color: #fff;
+  padding: 2rem 2.25rem 1.75rem;
+}
+
+.bnb-tool__badge {
+  display: inline-block;
+  background: var(--bnb-accent);
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .25rem .65rem;
+  border-radius: 999px;
+  margin-bottom: .75rem;
+}
+
+.bnb-tool__title {
+  margin: 0 0 .4rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff;
+}
+
+.bnb-tool__subtitle {
+  margin: 0;
+  font-size: .95rem;
+  color: rgba(255,255,255,.7);
+}
+
+/* ── Body ──────────────────────────────────────────────────── */
+.bnb-tool__body {
+  padding: 2rem 2.25rem;
+}
+
+/* ── Inputs ────────────────────────────────────────────────── */
+.bnb-tool__inputs {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.bnb-tool__inputs--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  gap: 1.1rem;
+}
+
+.bnb-tool__field {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  flex: 1;
+  min-width: 150px;
+}
+
+.bnb-tool__field label {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--bnb-text-muted);
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.bnb-tool__input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--bnb-border);
+  border-radius: var(--bnb-radius-sm);
+  overflow: hidden;
+  transition: border-color .2s;
+}
+
+.bnb-tool__input-wrap:focus-within {
+  border-color: var(--bnb-accent);
+  box-shadow: 0 0 0 3px rgba(233,69,96,.1);
+}
+
+.bnb-tool__input-wrap input[type="number"] {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: .65rem .75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--bnb-text);
+  background: transparent;
+  text-align: center;
+  -moz-appearance: textfield;
+  min-width: 0;
+}
+
+.bnb-tool__input-wrap input[type="number"]::-webkit-inner-spin-button,
+.bnb-tool__input-wrap input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+.bnb-tool__unit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 .65rem;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--bnb-text-muted);
+  background: var(--bnb-surface-alt);
+  border-left: 1.5px solid var(--bnb-border);
+  height: 100%;
+  align-self: stretch;
+}
+
+.bnb-tool__unit--prefix {
+  border-left: none;
+  border-right: 1.5px solid var(--bnb-border);
+}
+
+/* ── Button ────────────────────────────────────────────────── */
+.bnb-tool__btn {
+  display: block;
+  width: 100%;
+  padding: .9rem 1.5rem;
+  background: var(--bnb-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--bnb-radius-sm);
+  font-family: var(--bnb-font);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s, transform .1s;
+  letter-spacing: .02em;
+}
+
+.bnb-tool__btn:hover {
+  background: var(--bnb-accent-hover);
+  transform: translateY(-1px);
+}
+
+.bnb-tool__btn:active {
+  transform: translateY(0);
+}
+
+/* ── Result (single value) ─────────────────────────────────── */
+.bnb-tool__result {
+  margin-top: 1.5rem;
+  background: var(--bnb-result-bg);
+  border: 1.5px solid var(--bnb-result-border);
+  border-radius: var(--bnb-radius-sm);
+  padding: 1.5rem;
+  text-align: center;
+  animation: bnbFadeUp .3s ease;
+}
+
+.bnb-tool__result-label {
+  margin: 0 0 .3rem;
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--bnb-accent);
+}
+
+.bnb-tool__result-value {
+  margin: 0;
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: var(--bnb-primary);
+  line-height: 1;
+}
+
+/* ── Result (breakdown) ────────────────────────────────────── */
+.bnb-tool__result--breakdown {
+  text-align: left;
+  padding: 0;
+}
+
+.bnb-result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .7rem 1.25rem;
+  font-size: .95rem;
+  border-bottom: 1px solid var(--bnb-result-border);
+}
+
+.bnb-result-row:last-child {
+  border-bottom: none;
+}
+
+.bnb-result-row--highlight {
+  font-weight: 700;
+  background: rgba(233,69,96,.06);
+}
+
+.bnb-result-row--total {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--bnb-primary);
+  background: rgba(26,26,46,.04);
+  border-top: 2px solid var(--bnb-result-border);
+}
+
+.bnb-result-row--pct {
+  font-size: .85rem;
+  color: var(--bnb-text-muted);
+  border-bottom: none;
+}
+
+/* ── Disclaimer ────────────────────────────────────────────── */
+.bnb-tool__disclaimer {
+  margin: 1rem 0 0;
+  font-size: .75rem;
+  color: var(--bnb-text-muted);
+  line-height: 1.5;
+}
+
+/* ── CTA Banner ────────────────────────────────────────────── */
+.bnb-tool__cta {
+  background: var(--bnb-primary);
+  color: rgba(255,255,255,.85);
+  padding: 1.5rem 2.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.bnb-tool__cta p {
+  margin: 0;
+  font-size: .92rem;
+  line-height: 1.5;
+  flex: 1 1 auto;
+  color: rgba(255,255,255,.8);
+}
+
+.bnb-tool__cta p strong {
+  color: #fff;
+}
+
+.bnb-tool__cta-btn {
+  display: inline-block;
+  flex-shrink: 0;
+  padding: .7rem 1.4rem;
+  background: var(--bnb-accent);
+  color: #fff !important;
+  border-radius: 999px;
+  font-size: .88rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .2s, transform .1s;
+}
+
+.bnb-tool__cta-btn:hover {
+  background: var(--bnb-accent-hover);
+  transform: translateY(-1px);
+  text-decoration: none;
+  color: #fff !important;
+}
+
+/* ── Animation ─────────────────────────────────────────────── */
+@keyframes bnbFadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 540px) {
+  .bnb-tool__header,
+  .bnb-tool__body {
+    padding: 1.5rem 1.25rem;
+  }
+  .bnb-tool__cta {
+    padding: 1.25rem;
+    flex-direction: column;
+    text-align: center;
+  }
+  .bnb-tool__cta-btn {
+    width: 100%;
+    text-align: center;
+  }
+  .bnb-tool__inputs--grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bnb-tool__result-value {
+    font-size: 1.9rem;
+  }
+}
