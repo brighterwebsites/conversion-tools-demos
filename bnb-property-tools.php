@@ -2,8 +2,8 @@
 /**
  * Plugin Name: BNB Property Tools
  * Plugin URI:  https://brighterwebsites.com.au
- * Description: A showcase of short-term rental calculators — Annual Revenue Estimator and Per-Booking Net Revenue Estimator — embedded via shortcodes.
- * Version:     1.0.0
+ * Description: A showcase of calculators for web agency and short-term rental clients — embedded via shortcodes. Assets load only on pages that use a shortcode.
+ * Version:     1.1.0
  * Author:      Brighter Websites
  * Author URI:  https://brighterwebsites.com.au
  * License:     GPL-2.0+
@@ -14,22 +14,48 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BNB_TOOLS_VERSION', '1.0.0' );
+define( 'BNB_TOOLS_VERSION', '1.1.0' );
 define( 'BNB_TOOLS_URL', plugin_dir_url( __FILE__ ) );
 define( 'BNB_TOOLS_PATH', plugin_dir_path( __FILE__ ) );
 
 /**
- * Enqueue front-end assets only when a shortcode is present on the page.
+ * All registered shortcode tags — used for conditional asset loading.
+ */
+function bnb_tools_shortcodes() {
+	return [ 'bnb_annual_revenue', 'bnb_net_revenue', 'bnb_lead_gap' ];
+}
+
+/**
+ * Enqueue assets only on pages/posts that actually contain one of our shortcodes.
+ * Uses has_shortcode() so no scripts or styles are added to any other page.
  */
 add_action( 'wp_enqueue_scripts', 'bnb_tools_enqueue_assets' );
 function bnb_tools_enqueue_assets() {
-	wp_register_style(
+	global $post;
+
+	if ( ! is_a( $post, 'WP_Post' ) ) {
+		return;
+	}
+
+	$needed = false;
+	foreach ( bnb_tools_shortcodes() as $tag ) {
+		if ( has_shortcode( $post->post_content, $tag ) ) {
+			$needed = true;
+			break;
+		}
+	}
+
+	if ( ! $needed ) {
+		return;
+	}
+
+	wp_enqueue_style(
 		'bnb-property-tools',
 		BNB_TOOLS_URL . 'assets/css/bnb-tools.css',
 		[],
 		BNB_TOOLS_VERSION
 	);
-	wp_register_script(
+	wp_enqueue_script(
 		'bnb-property-tools',
 		BNB_TOOLS_URL . 'assets/js/bnb-tools.js',
 		[],
@@ -39,11 +65,9 @@ function bnb_tools_enqueue_assets() {
 }
 
 /**
- * Helper: enqueue assets and return an opening wrapper div.
+ * Returns an opening wrapper div (assets already enqueued by wp_enqueue_scripts).
  */
 function bnb_tools_wrap( $tool_id ) {
-	wp_enqueue_style( 'bnb-property-tools' );
-	wp_enqueue_script( 'bnb-property-tools' );
 	return '<div class="bnb-tool" id="' . esc_attr( $tool_id ) . '">';
 }
 
@@ -221,6 +245,128 @@ function bnb_net_revenue_shortcode() {
 	<div class="bnb-tool__cta">
 		<p>Ready to see these numbers in real life? <strong>Let our team handle everything</strong> so you keep more of what you earn.</p>
 		<a class="bnb-tool__cta-btn" href="/contact">Start Earning More Today &rarr;</a>
+	</div>
+	</div>
+	<?php
+	return ob_get_clean();
+}
+
+// ---------------------------------------------------------------------------
+// Shortcode 3: Lead & Revenue Gap Calculator
+// Usage: [bnb_lead_gap]
+//
+// Inputs:  monthly_leads, monthly_closed, avg_sale_value, goal_type, goal_value
+// Outputs: close rate, current revenue, extra leads needed, annual gap value
+// Updates live on every keystroke — no submit button.
+// ---------------------------------------------------------------------------
+add_shortcode( 'bnb_lead_gap', 'bnb_lead_gap_shortcode' );
+function bnb_lead_gap_shortcode() {
+	ob_start();
+	echo bnb_tools_wrap( 'bnb-lead-gap' );
+	?>
+	<div class="bnb-tool__header">
+		<span class="bnb-tool__badge">Free Calculator</span>
+		<h2 class="bnb-tool__title">Lead &amp; Revenue Gap Calculator</h2>
+		<p class="bnb-tool__subtitle">Find out exactly how many more leads you need to hit your goal — and what that gap costs you every year.</p>
+	</div>
+
+	<div class="bnb-lead-gap__layout">
+
+		<!-- ── Inputs column ── -->
+		<div class="bnb-lead-gap__inputs">
+
+			<div class="bnb-tool__field">
+				<label for="lg-monthly-leads">How many leads do you get each month?</label>
+				<div class="bnb-tool__input-wrap">
+					<input type="number" id="lg-monthly-leads" min="1" placeholder="e.g. 40" />
+				</div>
+			</div>
+
+			<div class="bnb-tool__field">
+				<label for="lg-monthly-closed">How many of those do you close?</label>
+				<div class="bnb-tool__input-wrap">
+					<input type="number" id="lg-monthly-closed" min="0" placeholder="e.g. 10" />
+				</div>
+				<span class="bnb-tool__field-error" id="lg-closed-error"></span>
+			</div>
+
+			<div class="bnb-tool__field">
+				<label for="lg-avg-sale">What's your average $ per closed sale?</label>
+				<div class="bnb-tool__input-wrap">
+					<span class="bnb-tool__unit bnb-tool__unit--prefix">$</span>
+					<input type="number" id="lg-avg-sale" min="1" placeholder="e.g. 2500" />
+				</div>
+			</div>
+
+			<div class="bnb-tool__field">
+				<label>What's your goal?</label>
+				<div class="lg-toggle" role="group" aria-label="Goal type">
+					<button type="button" class="lg-toggle__btn lg-toggle__btn--active" id="lg-goal-clients" data-goal="clients">More clients</button>
+					<button type="button" class="lg-toggle__btn" id="lg-goal-revenue" data-goal="revenue">More revenue</button>
+				</div>
+			</div>
+
+			<div class="bnb-tool__field">
+				<label for="lg-goal-value" id="lg-goal-value-label">How many more clients per month?</label>
+				<div class="bnb-tool__input-wrap" id="lg-goal-value-wrap">
+					<span class="bnb-tool__unit bnb-tool__unit--prefix" style="display:none;">$</span>
+					<input type="number" id="lg-goal-value" min="1" placeholder="e.g. 5" />
+				</div>
+			</div>
+
+		</div>
+
+		<!-- ── Output panel ── -->
+		<div class="bnb-lead-gap__output" id="lg-output">
+
+			<!-- Placeholder state -->
+			<div class="lg-placeholder" id="lg-placeholder">
+				<div class="lg-placeholder__icon">&#9650;</div>
+				<p>Fill in your numbers<br>to see your gap</p>
+			</div>
+
+			<!-- Results state (hidden until valid) -->
+			<div class="lg-results" id="lg-results" style="display:none;">
+
+				<div class="lg-stat">
+					<span class="lg-stat__label">Your close rate</span>
+					<span class="lg-stat__value" id="lg-res-close-rate">—</span>
+					<span class="lg-stat__sub" id="lg-res-close-plain">—</span>
+				</div>
+
+				<div class="lg-stat">
+					<span class="lg-stat__label">Current monthly revenue</span>
+					<span class="lg-stat__value" id="lg-res-monthly-rev">—</span>
+				</div>
+
+				<div class="lg-divider"></div>
+
+				<div class="lg-stat">
+					<span class="lg-stat__label">Extra leads needed</span>
+					<span class="lg-stat__value" id="lg-res-extra-leads">—</span>
+					<span class="lg-stat__sub" id="lg-res-total-leads">—</span>
+				</div>
+
+				<div class="lg-gap-hero">
+					<span class="lg-gap-hero__label">Solving your lead gap is worth</span>
+					<span class="lg-gap-hero__value" id="lg-res-annual-gap">$0</span>
+					<span class="lg-gap-hero__sub">per year in additional revenue</span>
+				</div>
+
+			</div>
+
+			<!-- Already-hitting state -->
+			<div class="lg-hitting" id="lg-hitting" style="display:none;">
+				<div class="lg-hitting__icon">&#10003;</div>
+				<p>You're already hitting that goal</p>
+			</div>
+
+		</div>
+	</div>
+
+	<div class="bnb-tool__cta">
+		<p>Know your gap. Now let's close it. <strong>We build the systems</strong> that turn more leads into paying clients.</p>
+		<a class="bnb-tool__cta-btn" href="/contact">Let's Talk Strategy &rarr;</a>
 	</div>
 	</div>
 	<?php
